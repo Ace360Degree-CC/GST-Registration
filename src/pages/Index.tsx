@@ -11,6 +11,7 @@ import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import FloatingActions from "@/components/FloatingActions";
 import ExitPopup from "@/components/ExitPopup";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 
 const Index = () => {
   return (
@@ -26,7 +27,9 @@ const Index = () => {
       <FinalCTA />
       <FAQ />
       <Footer />
+
       <FloatingActions />
+      <ScrollToTopButton />
       <ExitPopup />
 
       {/* JSON-LD */}
@@ -39,7 +42,7 @@ const Index = () => {
             name: "Praveen J & Associates",
             description: "Chartered Accountants offering GST Registration, Company Setup & Accounting services in Mumbai.",
             areaServed: ["Mumbai", "Navi Mumbai", "Thane", "Pune"],
-            telephone: "+91-9999999999",
+            telephone: "+91-8169887643",
             aggregateRating: { "@type": "AggregateRating", ratingValue: "5", reviewCount: "1000" },
           }),
         }}

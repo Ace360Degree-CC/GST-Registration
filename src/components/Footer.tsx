@@ -26,11 +26,11 @@ const Footer = () => (
           company registration, accounting & compliance services.
         </p>
         <div className="space-y-3 text-sm">
-          <a href="tel:+919999999999" className="flex items-center gap-3 hover:text-accent transition-smooth">
-            <Phone className="h-4 w-4" /> +91 99999 99999
+          <a href="tel:+918169887643" className="flex items-center gap-3 hover:text-accent transition-smooth">
+            <Phone className="h-4 w-4" />+91 81698 87643
           </a>
-          <a href="mailto:info@praveenjassociates.com" className="flex items-center gap-3 hover:text-accent transition-smooth">
-            <Mail className="h-4 w-4" /> info@praveenjassociates.com
+          <a href="mailto:pravreena2026@gmail.com" className="flex items-center gap-3 hover:text-accent transition-smooth">
+            <Mail className="h-4 w-4" /> pravreena2026@gmail.com
           </a>
           <p className="flex items-start gap-3 text-background/80">
             <MapPin className="h-4 w-4 mt-0.5 shrink-0" />

@@ -8,7 +8,7 @@ const Header = () => (
         <img src={logo} alt="Praveen J & Associates – Chartered Accountants" className="h-10 md:h-12 w-auto" />
       </a>
       <a
-        href="tel:+919999999999"
+        href="tel:+918169887643"
         className="flex items-center gap-2 text-sm md:text-base font-semibold text-primary hover:text-primary-dark transition-smooth"
       >
         <Phone className="h-4 w-4" />

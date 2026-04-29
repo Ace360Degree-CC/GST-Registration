@@ -10,6 +10,8 @@ interface Props {
   defaultService?: string;
 }
 
+const LEAD_FORM_ENDPOINT = "https://formsubmit.co/ajax/pravreena2026@gmail.com";
+
 const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Props) => {
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -19,20 +21,52 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !/^\d{10}$/.test(mobile)) {
       toast.error("Please enter a valid name and 10-digit mobile number");
       return;
     }
+    if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      const msg = `Hi, I'm ${name}. I need help with ${service}. Stage: ${stage}.`;
-      window.open(`https://wa.me/919999999999?text=${encodeURIComponent(msg)}`, "_blank");
-      setName(""); setMobile(""); setEmail("");
+
+    try {
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("mobile", mobile);
+      formData.append("email", email.trim() || "Not provided");
+      formData.append("service", service);
+      formData.append("stage", stage);
+      formData.append("_subject", `New Lead: ${service}`);
+      formData.append("_template", "table");
+
+      const response = await fetch(LEAD_FORM_ENDPOINT, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit lead form.");
+      }
+
+      setName("");
+      setMobile("");
+      setEmail("");
+      toast.success("Submitted successfully. We'll contact you shortly.");
       navigate("/thank-you");
-    }, 600);
+    } catch (error) {
+      console.error(error);
+      toast.error("Submission failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

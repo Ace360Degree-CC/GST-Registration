@@ -5,11 +5,11 @@ const FloatingActions = () => (
   <>
     {/* WhatsApp floating */}
     <a
-      href="https://wa.me/919999999999?text=Hi%2C%20I%20want%20GST%20registration"
+      href="https://wa.me/+918169887643?text=Hi%2C%20I%20want%20GST%20registration"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
-      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 h-14 w-14 rounded-full bg-whatsapp text-whatsapp-foreground flex items-center justify-center shadow-float animate-pulse-ring hover:scale-110 transition-smooth"
+      className="fixed bottom-20 right-6 md:bottom-6 md:right-8 z-40 h-14 w-14 rounded-full bg-whatsapp text-whatsapp-foreground flex items-center justify-center transition-smooth"
     >
       <MessageCircle className="h-7 w-7" />
     </a>

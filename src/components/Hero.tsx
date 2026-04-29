@@ -1,11 +1,15 @@
-import founder from "@/assets/founder.png";
+import { useState } from "react";
+import founder from "@/assets/founder.png"; // Replace with your image
 import LeadForm from "./LeadForm";
 import { Play, CheckCircle2, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 const Hero = () => {
   const [playing, setPlaying] = useState(false);
+  const videoUrl = "https://www.youtube.com/embed/nVvmDk9kZ2M?autoplay=1&playsinline=1&rel=0&modestbranding=1";
+
+  const handlePlayClick = () => {
+    setPlaying(true);
+  };
 
   return (
     <section className="relative gradient-hero text-primary-foreground overflow-hidden">
@@ -13,33 +17,42 @@ const Hero = () => {
       <div className="container relative px-4 py-10 md:py-16 grid lg:grid-cols-2 gap-10 items-center">
         {/* Left: Video / Founder */}
         <div className="animate-fade-up order-2 lg:order-1">
-          <div className="relative rounded-2xl overflow-hidden shadow-float bg-background/10 aspect-[4/5] max-w-md mx-auto">
+          <div
+            className={`relative rounded-2xl overflow-hidden bg-transparent aspect-[9/16] w-full mx-auto ${
+              playing ? "max-w-sm" : "max-w-lg"
+            }`}
+          >
+            {/* Thumbnail (Founder Image) */}
             <img
               src={founder}
               alt="CA Praveen Jain - Founder, Praveen J & Associates"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-center"
               loading="eager"
+              style={{ cursor: "default" }}
             />
+
+            {/* Play Button */}
             {!playing && (
               <button
-                onClick={() => setPlaying(true)}
+                onClick={handlePlayClick}
                 aria-label="Play introduction video"
-                className="absolute inset-0 flex items-center justify-center bg-foreground/30 hover:bg-foreground/40 transition-smooth group"
+                className="absolute inset-0 flex items-center justify-center transition-smooth group"
               >
                 <span className="h-20 w-20 rounded-full bg-primary-foreground flex items-center justify-center shadow-elegant group-hover:scale-110 transition-smooth animate-pulse-ring">
                   <Play className="h-10 w-10 text-primary fill-primary ml-1" />
                 </span>
               </button>
             )}
+
             {playing && (
-              <div className="absolute inset-0 bg-foreground flex items-center justify-center text-primary-foreground/70 text-sm p-6 text-center">
-                Founder intro video coming soon. Meanwhile, fill the form →
-              </div>
+              <iframe
+                src={videoUrl}
+                title="YouTube Video"
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full"
+              />
             )}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-foreground/80 to-transparent">
-              <p className="text-sm font-semibold">CA Praveen Jain</p>
-              <p className="text-xs opacity-90">Founder · 10+ Years Experience</p>
-            </div>
           </div>
         </div>
 
@@ -88,3 +101,4 @@ const Hero = () => {
 };
 
 export default Hero;
+

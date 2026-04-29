@@ -22,7 +22,7 @@ const FinalCTA = () => (
           size="xl"
           variant="outlineLight"
           className="flex-1"
-          onClick={() => window.open("https://wa.me/919999999999?text=Hi%2C%20I%20want%20to%20talk%20to%20a%20CA", "_blank")}
+          onClick={() => window.open("https://wa.me/+918169887643?text=Hi%2C%20I%20want%20to%20talk%20to%20a%20CA", "_blank")}
         >
           <MessageCircle className="h-5 w-5" /> Talk to CA
         </Button>

@@ -23,7 +23,7 @@ const steps = [
 ];
 
 const ThankYou = () => {
-  const waUrl = "https://wa.me/919999999999?text=" + encodeURIComponent("Hi, I just submitted the form. Please help me start my business.");
+  const waUrl = "https://wa.me/+918169887643?text=" + encodeURIComponent("Hi, I just submitted the form. Please help me start my business.");
 
   return (
     <main className="min-h-screen bg-background flex flex-col">

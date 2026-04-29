@@ -88,6 +88,14 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   * {
     @apply border-border;
   }
@@ -95,6 +103,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  main {
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4 {
