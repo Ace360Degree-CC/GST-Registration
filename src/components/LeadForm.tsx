@@ -27,7 +27,7 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
       toast.error("Please enter a valid name and 10-digit mobile number");
       return;
     }
-    if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
       toast.error("Please enter a valid email address");
       return;
     }
@@ -38,11 +38,15 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("mobile", mobile);
-      formData.append("email", email.trim() || "Not provided");
+      formData.append("email", email.trim());
       formData.append("service", service);
       formData.append("stage", stage);
       formData.append("_subject", `New Lead: ${service}`);
       formData.append("_template", "table");
+      formData.append(
+        "_autoresponse",
+        `Hi ${name.trim()}, thank you for submitting the form. We received your request for ${service} and will contact you shortly.`
+      );
 
       const response = await fetch(LEAD_FORM_ENDPOINT, {
         method: "POST",
@@ -85,16 +89,14 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
         inputMode="numeric"
         className="h-12 bg-background"
       />
-      {variant === "footer" && (
-        <Input
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          maxLength={120}
-          className="h-12 bg-background"
-        />
-      )}
+      <Input
+        type="email"
+        placeholder="Email Address *"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        maxLength={120}
+        className="h-12 bg-background"
+      />
       <Select value={service} onValueChange={setService}>
         <SelectTrigger className="h-12 bg-background"><SelectValue /></SelectTrigger>
         <SelectContent>

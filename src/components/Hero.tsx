@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import founder from "@/assets/founder.png"; // Replace with your image
 import LeadForm from "./LeadForm";
 import { Play, CheckCircle2, Star } from "lucide-react";
 
 const Hero = () => {
   const [playing, setPlaying] = useState(false);
-  const videoUrl = "https://www.youtube.com/embed/nVvmDk9kZ2M?autoplay=1&playsinline=1&rel=0&modestbranding=1";
+  const videoUrl = "https://www.youtube.com/embed/nVvmDk9kZ2M?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1";
+
+  useEffect(() => {
+    const handleScrollStart = () => {
+      if (window.scrollY > 0) {
+        setPlaying(true);
+        window.removeEventListener("scroll", handleScrollStart);
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollStart, { passive: true });
+    handleScrollStart();
+    return () => window.removeEventListener("scroll", handleScrollStart);
+  }, []);
 
   const handlePlayClick = () => {
     setPlaying(true);

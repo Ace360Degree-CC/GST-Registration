@@ -1,31 +1,81 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const ExitPopup = () => {
   const [open, setOpen] = useState(false);
-  const [shown, setShown] = useState(false);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
+  const previousScrollPercentRef = useRef(0);
+  const hasInitializedScrollRef = useRef(false);
+  const pendingMilestonesRef = useRef(0);
+  const hasShownExitIntentRef = useRef(false);
+  const hasShownTimerRef = useRef(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !shown) {
+    const handleScroll = () => {
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return;
+
+      const scrollPercent = Math.max(0, Math.min(100, (window.scrollY / scrollableHeight) * 100));
+
+      if (!hasInitializedScrollRef.current) {
+        previousScrollPercentRef.current = scrollPercent;
+        hasInitializedScrollRef.current = true;
+        return;
+      }
+
+      const previousPercent = previousScrollPercentRef.current;
+
+      if (scrollPercent > previousPercent) {
+        for (let threshold = 25; threshold <= 100; threshold += 25) {
+          if (previousPercent < threshold && scrollPercent >= threshold) {
+            pendingMilestonesRef.current += 1;
+          }
+        }
+      } else if (scrollPercent < previousPercent) {
+        for (let threshold = 50; threshold <= 100; threshold += 50) {
+          if (previousPercent > threshold && scrollPercent <= threshold) {
+            pendingMilestonesRef.current += 1;
+          }
+        }
+      }
+
+      previousScrollPercentRef.current = scrollPercent;
+
+      if (pendingMilestonesRef.current > 0 && !open) {
+        pendingMilestonesRef.current -= 1;
         setOpen(true);
-        setShown(true);
       }
     };
+
+    const handleLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0 && !hasShownExitIntentRef.current) {
+        setOpen(true);
+        hasShownExitIntentRef.current = true;
+      }
+    };
+
     const timer = setTimeout(() => {
-      if (!shown) { setOpen(true); setShown(true); }
+      if (!hasShownTimerRef.current) {
+        setOpen(true);
+        hasShownTimerRef.current = true;
+      }
     }, 45000);
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
     document.addEventListener("mouseout", handleLeave);
     return () => {
+      window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mouseout", handleLeave);
       clearTimeout(timer);
     };
-  }, [shown]);
+  }, [open]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +85,7 @@ const ExitPopup = () => {
     }
     toast.success("✅ Thanks! CA will call you shortly.");
     setOpen(false);
+    navigate("/thank-you");
   };
 
   return (
