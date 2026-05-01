@@ -30,15 +30,16 @@ const ExitPopup = () => {
       }
 
       const previousPercent = previousScrollPercentRef.current;
+      const thresholds = [50, 100];
 
       if (scrollPercent > previousPercent) {
-        for (let threshold = 25; threshold <= 100; threshold += 25) {
+        for (const threshold of thresholds) {
           if (previousPercent < threshold && scrollPercent >= threshold) {
             pendingMilestonesRef.current += 1;
           }
         }
       } else if (scrollPercent < previousPercent) {
-        for (let threshold = 50; threshold <= 100; threshold += 50) {
+        for (const threshold of thresholds) {
           if (previousPercent > threshold && scrollPercent <= threshold) {
             pendingMilestonesRef.current += 1;
           }
