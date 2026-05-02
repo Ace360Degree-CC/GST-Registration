@@ -10,7 +10,7 @@ interface Props {
   defaultService?: string;
 }
 
-const LEAD_FORM_ENDPOINT = "https://formsubmit.co/ajax/pravreena2026@gmail.com";
+const LEAD_FORM_ENDPOINT = import.meta.env.VITE_LEAD_API_URL || "/api/leads";
 
 const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Props) => {
   const [name, setName] = useState("");
@@ -35,29 +35,33 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("name", name.trim());
-      formData.append("mobile", mobile);
-      formData.append("email", email.trim());
-      formData.append("service", service);
-      formData.append("stage", stage);
-      formData.append("_subject", `New Lead: ${service}`);
-      formData.append("_template", "table");
-      formData.append(
-        "_autoresponse",
-        `Hi ${name.trim()}, thank you for submitting the form. We received your request for ${service} and will contact you shortly.`
-      );
-
       const response = await fetch(LEAD_FORM_ENDPOINT, {
         method: "POST",
         headers: {
           Accept: "application/json",
+          "Content-Type": "application/json",
         },
-        body: formData,
+        body: JSON.stringify({
+          name: name.trim(),
+          mobile,
+          email: email.trim(),
+          service,
+          stage,
+          formSource: variant === "footer" ? "footer" : "header",
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit lead form.");
+        let errorMessage = "Failed to submit lead form.";
+        try {
+          const payload = await response.json();
+          if (payload?.error) {
+            errorMessage = payload.error;
+          }
+        } catch {
+          // Ignore JSON parse errors and use default message.
+        }
+        throw new Error(errorMessage);
       }
 
       setName("");
@@ -67,7 +71,13 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
       navigate("/thank-you");
     } catch (error) {
       console.error(error);
-      toast.error("Submission failed. Please try again.");
+      if (error instanceof TypeError) {
+        toast.error("Submission failed: backend API is not reachable. Start `npm run dev:server`.");
+      } else if (error instanceof Error) {
+        toast.error(`Submission failed: ${error.message}`);
+      } else {
+        toast.error("Submission failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
