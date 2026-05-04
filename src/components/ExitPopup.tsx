@@ -1,116 +1,91 @@
-import { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+﻿import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { AlertTriangle, Flame } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { waLink } from "@/lib/contact";
+
+const schema = z.object({
+  name: z.string().trim().min(2, "Enter name").max(80),
+  mobile: z.string().trim().regex(/^[6-9]\d{9}$/, "10-digit mobile"),
+});
+
+type FormData = z.infer<typeof schema>;
 
 const ExitPopup = () => {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const previousScrollPercentRef = useRef(0);
-  const hasInitializedScrollRef = useRef(false);
-  const pendingMilestonesRef = useRef(0);
-  const hasShownExitIntentRef = useRef(false);
-  const hasShownTimerRef = useRef(false);
+  const lastTriggerPercentRef = useRef<number | null>(null);
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
+    const getScrollPercent = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight <= 0) return 0;
+      return (window.scrollY / scrollHeight) * 100;
+    };
+
     const handleScroll = () => {
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (scrollableHeight <= 0) return;
-
-      const scrollPercent = Math.max(0, Math.min(100, (window.scrollY / scrollableHeight) * 100));
-
-      if (!hasInitializedScrollRef.current) {
-        previousScrollPercentRef.current = scrollPercent;
-        hasInitializedScrollRef.current = true;
+      const percent = getScrollPercent();
+      if (lastTriggerPercentRef.current === null) {
+        lastTriggerPercentRef.current = percent;
         return;
       }
 
-      const previousPercent = previousScrollPercentRef.current;
-      const thresholds = [50, 100];
-
-      if (scrollPercent > previousPercent) {
-        for (const threshold of thresholds) {
-          if (previousPercent < threshold && scrollPercent >= threshold) {
-            pendingMilestonesRef.current += 1;
-          }
-        }
-      } else if (scrollPercent < previousPercent) {
-        for (const threshold of thresholds) {
-          if (previousPercent > threshold && scrollPercent <= threshold) {
-            pendingMilestonesRef.current += 1;
-          }
-        }
-      }
-
-      previousScrollPercentRef.current = scrollPercent;
-
-      if (pendingMilestonesRef.current > 0 && !open) {
-        pendingMilestonesRef.current -= 1;
+      if (Math.abs(percent - lastTriggerPercentRef.current) >= 40) {
+        lastTriggerPercentRef.current = percent;
         setOpen(true);
       }
     };
 
-    const handleLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !hasShownExitIntentRef.current) {
-        setOpen(true);
-        hasShownExitIntentRef.current = true;
-      }
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    const timer = setTimeout(() => {
-      if (!hasShownTimerRef.current) {
-        setOpen(true);
-        hasShownTimerRef.current = true;
-      }
-    }, 45000);
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-    document.addEventListener("mouseout", handleLeave);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mouseout", handleLeave);
-      clearTimeout(timer);
-    };
-  }, [open]);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !/^\d{10}$/.test(mobile)) {
-      toast.error("Please enter valid name and 10-digit mobile");
-      return;
-    }
-    toast.success("✅ Thanks! CA will call you shortly.");
-    setOpen(false);
+  const onSubmit = (data: FormData) => {
+    const msg = `Hi! Exit popup form\nName: ${data.name}\nMobile: ${data.mobile}\nI want to file TDS now.`;
+    window.open(waLink(msg), "_blank", "noopener,noreferrer");
     navigate("/thank-you");
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl" style={{ fontFamily: "Poppins, sans-serif" }}>
-            Business Start Karne Se Pehle Rukiye 🚀
-          </DialogTitle>
-          <DialogDescription>
-            Free 15-minute CA consultation — no obligation. Apna number chhodiye, hum call karenge.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={submit} className="space-y-3 pt-2">
-          <Input placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} className="h-12" maxLength={60} />
-          <Input
-            placeholder="Mobile Number"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
-            inputMode="numeric"
-            className="h-12"
-          />
-          <Button type="submit" variant="cta" size="xl" className="w-full">
-            👉 Start My Registration
+      <DialogContent className="overflow-hidden p-0 sm:max-w-md">
+        <div className="gradient-cta px-6 py-5 text-primary-foreground">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase backdrop-blur">
+            <Flame className="h-3.5 w-3.5" /> Wait!
+          </div>
+          <DialogHeader className="mt-3 space-y-1 text-left">
+            <DialogTitle className="text-2xl font-extrabold text-primary-foreground">
+              TDS Delay = Penalty <AlertTriangle className="inline h-5 w-5" />
+            </DialogTitle>
+            <DialogDescription className="text-primary-foreground/90">
+              Abhi file karein aur interest bachayein. Avoid late fees and notices.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 p-6">
+          <div>
+            <Label htmlFor="ep-name">Name</Label>
+            <Input id="ep-name" placeholder="Your name" {...register("name")} />
+            {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="ep-mob">Mobile</Label>
+            <Input id="ep-mob" type="tel" inputMode="numeric" placeholder="10-digit mobile" {...register("mobile")} />
+            {errors.mobile && <p className="mt-1 text-xs text-destructive">{errors.mobile.message}</p>}
+          </div>
+          <Button type="submit" variant="cta" size="lg" className="w-full">
+            File My TDS Now
           </Button>
         </form>
       </DialogContent>
