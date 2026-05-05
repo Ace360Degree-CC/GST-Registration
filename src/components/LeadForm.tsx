@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { submitLead } from "@/lib/submitLead";
 
 interface Props {
   variant?: "hero" | "footer";
@@ -35,34 +36,14 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
     setLoading(true);
 
     try {
-      const response = await fetch(LEAD_FORM_ENDPOINT, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          mobile,
-          email: email.trim(),
-          service,
-          stage,
-          formSource: variant === "footer" ? "footer" : "header",
-        }),
+      await submitLead(LEAD_FORM_ENDPOINT, {
+        name: name.trim(),
+        mobile,
+        email: email.trim(),
+        service,
+        stage,
+        formSource: variant === "footer" ? "footer" : "header",
       });
-
-      if (!response.ok) {
-        let errorMessage = "Failed to submit lead form.";
-        try {
-          const payload = await response.json();
-          if (payload?.error) {
-            errorMessage = payload.error;
-          }
-        } catch {
-          // Ignore JSON parse errors and use default message.
-        }
-        throw new Error(errorMessage);
-      }
 
       setName("");
       setMobile("");

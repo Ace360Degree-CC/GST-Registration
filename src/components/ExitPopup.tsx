@@ -4,30 +4,46 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AlertTriangle, Flame } from "lucide-react";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { waLink } from "@/lib/contact";
+import { submitLead } from "@/lib/submitLead";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Enter name").max(80),
   mobile: z.string().trim().regex(/^[6-9]\d{9}$/, "10-digit mobile"),
+  email: z.string().trim().regex(/^\S+@\S+\.\S+$/, "Enter valid email"),
 });
 
 type FormData = z.infer<typeof schema>;
+const LEAD_FORM_ENDPOINT = import.meta.env.VITE_LEAD_API_URL || "/api/leads";
+const EXIT_POPUP_SUBMITTED_KEY = "exitPopupSubmitted";
 
 const ExitPopup = () => {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const lastTriggerPercentRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
+    const isPopupSubmitted = () => {
+      try {
+        return localStorage.getItem(EXIT_POPUP_SUBMITTED_KEY) === "true";
+      } catch {
+        return false;
+      }
+    };
+
+    if (isPopupSubmitted()) return;
+
     const getScrollPercent = () => {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollHeight <= 0) return 0;
@@ -51,10 +67,40 @@ const ExitPopup = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const onSubmit = (data: FormData) => {
-    const msg = `Hi! Exit popup form\nName: ${data.name}\nMobile: ${data.mobile}\nI want to file TDS now.`;
-    window.open(waLink(msg), "_blank", "noopener,noreferrer");
-    navigate("/thank-you");
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+
+    try {
+      await submitLead(LEAD_FORM_ENDPOINT, {
+        name: data.name.trim(),
+        mobile: data.mobile,
+        email: data.email.trim(),
+        service: "TDS Filing",
+        stage: "Running",
+        formSource: "popup",
+      });
+
+      try {
+        localStorage.setItem(EXIT_POPUP_SUBMITTED_KEY, "true");
+      } catch {
+        // Ignore storage errors and continue success flow.
+      }
+      reset();
+      setOpen(false);
+      toast.success("Submitted successfully. We'll contact you shortly.");
+      navigate("/thank-you");
+    } catch (error) {
+      console.error(error);
+      if (error instanceof TypeError) {
+        toast.error("Submission failed: backend API is not reachable. Start `npm run dev:server`.");
+      } else if (error instanceof Error) {
+        toast.error(`Submission failed: ${error.message}`);
+      } else {
+        toast.error("Submission failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,8 +130,13 @@ const ExitPopup = () => {
             <Input id="ep-mob" type="tel" inputMode="numeric" placeholder="10-digit mobile" {...register("mobile")} />
             {errors.mobile && <p className="mt-1 text-xs text-destructive">{errors.mobile.message}</p>}
           </div>
-          <Button type="submit" variant="cta" size="lg" className="w-full">
-            File My TDS Now
+          <div>
+            <Label htmlFor="ep-email">Email</Label>
+            <Input id="ep-email" type="email" placeholder="you@example.com" {...register("email")} />
+            {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
+          </div>
+          <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading}>
+            {loading ? "Submitting..." : "File My TDS Now"}
           </Button>
         </form>
       </DialogContent>

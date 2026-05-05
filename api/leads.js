@@ -35,7 +35,12 @@ export default async function handler(req, res) {
   const safeEmail = email.trim();
   const safeService = service || "GST Registration";
   const safeStage = stage || "Idea";
-  const safeFormSource = formSource === "footer" ? "Footer Form" : "Header Form";
+  const sourceMap = {
+    footer: "Footer Form",
+    popup: "Popup Form",
+    header: "Header Form",
+  };
+  const safeFormSource = sourceMap[formSource] || "Header Form";
 
   const transporter = nodemailer.createTransport({
     host: SMTP_HOST,
@@ -74,7 +79,7 @@ Team
     await transporter.sendMail({
       from: MAIL_FROM,
       to: MAIL_TO,
-      subject: `New Lead (${safeFormSource})`,
+      subject: `GST New Lead (${safeFormSource})`,
       text: adminText,
     });
 
