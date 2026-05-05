@@ -28,6 +28,7 @@ const Hero = () => {
     <section className="relative gradient-hero text-primary-foreground overflow-hidden">
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_20%_20%,white,transparent_50%)]" />
       <div className="container relative px-4 py-10 md:py-16 grid lg:grid-cols-2 gap-10 items-center">
+        
         {/* Left: Video / Founder */}
         <div className="animate-fade-up order-2 lg:order-1">
           <div
@@ -35,7 +36,6 @@ const Hero = () => {
               playing ? "max-w-sm" : "max-w-lg"
             }`}
           >
-            {/* Thumbnail (Founder Image) */}
             <img
               src={founder}
               alt="CA Praveen Jain - Founder, Praveen J & Associates"
@@ -44,7 +44,6 @@ const Hero = () => {
               style={{ cursor: "default" }}
             />
 
-            {/* Play Button */}
             {!playing && (
               <button
                 onClick={handlePlayClick}
@@ -71,13 +70,24 @@ const Hero = () => {
 
         {/* Right: Headline + Form */}
         <div className="order-1 lg:order-2 animate-fade-up">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-primary-foreground/15 backdrop-blur text-xs md:text-sm font-semibold mb-4 border border-primary-foreground/20">
+          
+          <span className="inline-block px-4 py-1.5 rounded-full bg-primary-foreground/15 backdrop-blur text-xs md:text-sm font-semibold mb-3 border border-primary-foreground/20">
             🇮🇳 Trusted by 1000+ Indian Businesses
           </span>
+
+          {/* ✅ ADDED TRUST + DISCLAIMER */}
+          <p className="text-sm text-primary-foreground/90 mb-1">
+            Praveen J & Associates – Chartered Accountants, Mumbai
+          </p>
+          <p className="text-xs text-primary-foreground/80 mb-3">
+            We are a private Chartered Accountant firm and not affiliated with the GST Department or Government of India.
+          </p>
+
           <h1 className="text-3xl md:text-5xl font-extrabold leading-tight mb-4" style={{ fontFamily: "Poppins, Inter, sans-serif" }}>
             Business Start Karna Hai? <br />
             <span className="text-accent">GST Registration</span> Se Shuruaat Karein 🚀
           </h1>
+
           <p className="text-base md:text-lg opacity-95 mb-5">
             New business ke liye GST registration aur setup ab easy hai.
             <br className="hidden md:block" />
@@ -92,21 +102,25 @@ const Hero = () => {
             ))}
           </ul>
 
-          {/* Inline form on desktop, scroll cue on mobile */}
           <div className="bg-background text-foreground rounded-2xl p-5 md:p-6 shadow-float">
             <h2 className="text-lg md:text-xl font-bold mb-1">Get Free Consultation</h2>
-            <p className="text-sm text-muted-foreground mb-4">Fill the form — we call you within 30 mins ⏱</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Fill the form — we call you within 30 mins ⏱
+            </p>
             <LeadForm variant="hero" />
           </div>
 
           <div className="flex items-center gap-4 mt-5 text-sm">
             <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-accent text-accent" />)}
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+              ))}
               <span className="ml-1 font-semibold">5.0</span>
             </div>
             <span className="opacity-80">·</span>
             <span className="opacity-95">⭐ 1000+ Clients · Mumbai · INDIA</span>
           </div>
+
         </div>
       </div>
     </section>
@@ -114,4 +128,3 @@ const Hero = () => {
 };
 
 export default Hero;
-
