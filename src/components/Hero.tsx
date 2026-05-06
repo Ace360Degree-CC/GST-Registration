@@ -91,7 +91,7 @@ const Hero = () => {
           <p className="text-base md:text-lg opacity-95 mb-5">
             Professional GST consultation and registration support for bussinesses across India.<br />- By C.A Praveen Jain
                       <br className="hidden md:block" />
-            👉 CA Praveen Jain ke saath <strong>fast & hassle-free</strong> process.
+            {/* 👉 CA Praveen Jain ke saath <strong>fast & hassle-free</strong> process. */}
           </p>
 
           <ul className="space-y-2 mb-6">
