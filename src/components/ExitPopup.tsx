@@ -17,14 +17,14 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 const LEAD_FORM_ENDPOINT = import.meta.env.VITE_LEAD_API_URL || "/api/leads";
-const EXIT_POPUP_SUBMITTED_KEY = "exitPopupSubmitted";
-const EXIT_POPUP_DISMISSED_AT_KEY = "exitPopupDismissedAt";
-const EXIT_POPUP_REOPEN_MS = 30 * 60 * 1000;
+const POPUP_THRESHOLDS = [30, 60] as const;
 
 const ExitPopup = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const hasTriggeredRef = useRef(false);
+  const lastScrollPercentRef = useRef(0);
+  const downTriggersRef = useRef<Record<number, boolean>>({ 30: false, 60: false });
+  const upTriggersRef = useRef<Record<number, boolean>>({ 30: false, 60: false });
   const navigate = useNavigate();
   const {
     register,
@@ -34,51 +34,46 @@ const ExitPopup = () => {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   useEffect(() => {
-    const isPopupBlocked = () => {
-      try {
-        const isSubmitted = localStorage.getItem(EXIT_POPUP_SUBMITTED_KEY) === "true";
-        const dismissedAtRaw = localStorage.getItem(EXIT_POPUP_DISMISSED_AT_KEY);
-        const dismissedAt = dismissedAtRaw ? Number(dismissedAtRaw) : 0;
-        const isDismissCooldownActive =
-          Number.isFinite(dismissedAt) && dismissedAt > 0 && Date.now() - dismissedAt < EXIT_POPUP_REOPEN_MS;
-        return isSubmitted || isDismissCooldownActive;
-      } catch {
-        return false;
-      }
+    const getScrollPercent = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight <= 0) return 0;
+      return (window.scrollY / scrollHeight) * 100;
     };
 
-    if (isPopupBlocked()) return;
-
     const triggerPopup = () => {
-      if (hasTriggeredRef.current) return;
-      hasTriggeredRef.current = true;
       setOpen(true);
     };
 
     const handleScroll = () => {
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
-      if (scrollPercent >= 25 || window.scrollY >= 240) {
-        triggerPopup();
+      const current = getScrollPercent();
+      const previous = lastScrollPercentRef.current;
+
+      for (const threshold of POPUP_THRESHOLDS) {
+        const crossedDown = previous < threshold && current >= threshold;
+        if (crossedDown && !downTriggersRef.current[threshold]) {
+          downTriggersRef.current[threshold] = true;
+          triggerPopup();
+          break;
+        }
       }
+
+      for (const threshold of POPUP_THRESHOLDS) {
+        const crossedUp = previous > threshold && current <= threshold;
+        if (crossedUp && !upTriggersRef.current[threshold]) {
+          upTriggersRef.current[threshold] = true;
+          triggerPopup();
+          break;
+        }
+      }
+
+      lastScrollPercentRef.current = current;
     };
 
-    const handleExitIntent = (event: MouseEvent) => {
-      if (event.clientY <= 0) {
-        triggerPopup();
-      }
-    };
-
-    const openTimer = window.setTimeout(() => {
-      triggerPopup();
-    }, 12000);
+    lastScrollPercentRef.current = getScrollPercent();
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    document.addEventListener("mouseleave", handleExitIntent);
     return () => {
-      window.clearTimeout(openTimer);
       window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("mouseleave", handleExitIntent);
     };
   }, []);
 
@@ -94,12 +89,6 @@ const ExitPopup = () => {
         stage: "Idea",
         formSource: "popup",
       });
-
-      try {
-        localStorage.setItem(EXIT_POPUP_SUBMITTED_KEY, "true");
-      } catch {
-        // Ignore storage errors and continue success flow.
-      }
       reset();
       setOpen(false);
       toast.success("Submitted successfully. We'll contact you shortly.");
@@ -119,19 +108,7 @@ const ExitPopup = () => {
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        if (!nextOpen) {
-          try {
-            localStorage.setItem(EXIT_POPUP_DISMISSED_AT_KEY, String(Date.now()));
-          } catch {
-            // Ignore storage errors.
-          }
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="overflow-hidden border-zinc-200 bg-zinc-100 p-0 sm:max-w-[460px]">
         <div className="px-6 pb-5 pt-6">
           <DialogHeader className="space-y-2 text-left">
@@ -143,7 +120,7 @@ const ExitPopup = () => {
             </DialogDescription>
           </DialogHeader>
         </div>
-     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 pb-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 pb-6">
           <div>
             <Input
               id="ep-name"
