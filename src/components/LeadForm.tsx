@@ -91,9 +91,9 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
       <Select value={service} onValueChange={setService}>
         <SelectTrigger className="h-12 bg-background"><SelectValue /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="GST Registration">GST Registration ✅</SelectItem>
-          <SelectItem value="Company Registration">Company / LLP Registration</SelectItem>
-          <SelectItem value="Accounting">Accounting & Bookkeeping</SelectItem>
+          <SelectItem value="GST Registration">GST Registration Assistance  ✅</SelectItem>
+          <SelectItem value="Company Registration">Company / LLP Registration Assistance</SelectItem>
+          <SelectItem value="Accounting">Accounting & Bookkeeping Assistance</SelectItem>
           <SelectItem value="CA Consultation">CA Consultation</SelectItem>
         </SelectContent>
       </Select>
@@ -108,7 +108,7 @@ const LeadForm = ({ variant = "hero", defaultService = "GST Registration" }: Pro
         </Select>
       )}
       <Button type="submit" variant="cta" size="xl" className="w-full" disabled={loading}>
-        {loading ? "Submitting..." : variant === "footer" ? "👉 Submit & Get Consultation" : "👉 Get Started"}
+        {loading ? "Submitting..." : variant === "footer" ? "👉 Submit & Get Consultation" : "👉 Submit & Get Consultation"}
       </Button>
       <p className="text-center text-xs text-muted-foreground">⚡ Quick response guaranteed · 100% Confidential</p>
     </form>

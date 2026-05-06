@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 const cards = [
   {
     badge: "MOST POPULAR",
-    title: "GST Registration",
+    title: "GST Registration Assistance ",
     points: [
       "GSTIN approval",
       "Complete Documentation",
@@ -14,7 +14,7 @@ const cards = [
     highlight: true,
   },
   {
-    title: "Company / LLP Registration",
+    title: "Company / LLP Registration Assistance",
     points: [
       "Pvt Ltd Company",
       "LLP Registration",
@@ -23,7 +23,7 @@ const cards = [
     ],
   },
   {
-    title: "Partnership / Sole Proprietor",
+    title: "Partnership / Sole Proprietor Assistance",
     points: [
       "Pvt Ltd Partnership Firm Setup",
       "Sole Proprietor Registration",

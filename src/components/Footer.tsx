@@ -33,7 +33,7 @@ const Footer = () => (
         <img
           src={logo}
           alt="Praveen J & Associates"
-          className="h-14 w-auto bg-background rounded-lg p-2"
+          className="h-16 md:h-20 w-auto bg-background rounded-lg p-2"
         />
 
         <p className="text-background/80 text-sm leading-relaxed max-w-md">

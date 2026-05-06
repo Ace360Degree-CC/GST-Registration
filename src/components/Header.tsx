@@ -5,7 +5,7 @@ const Header = () => (
   <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur border-b shadow-sm">
     <div className="container flex items-center justify-between h-16 px-4">
       <a href="/" className="flex items-center gap-2">
-        <img src={logo} alt="Praveen J & Associates – Chartered Accountants" className="h-10 md:h-12 w-auto" />
+        <img src={logo} alt="Praveen J & Associates – Chartered Accountants" className="h-12 md:h-14 w-auto" />
       </a>
       
       <a
@@ -21,3 +21,4 @@ const Header = () => (
 );
 
 export default Header;
+

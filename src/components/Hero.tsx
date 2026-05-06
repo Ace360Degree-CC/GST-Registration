@@ -85,17 +85,17 @@ const Hero = () => {
 
           <h1 className="text-3xl md:text-5xl font-extrabold leading-tight mb-4" style={{ fontFamily: "Poppins, Inter, sans-serif" }}>
             Business Start Karna Hai? <br />
-            <span className="text-accent">GST Registration</span> Se Shuruaat Karein 🚀
+            <span className="text-accent">GST Registration Assistance</span> Se Shuruaat Karein 🚀
           </h1>
 
           <p className="text-base md:text-lg opacity-95 mb-5">
-            New business ke liye GST registration aur setup ab easy hai.
-            <br className="hidden md:block" />
+            Professional GST consultation and registration support for bussinesses across India.<br />- By C.A Praveen Jain
+                      <br className="hidden md:block" />
             👉 CA Praveen Jain ke saath <strong>fast & hassle-free</strong> process.
           </p>
 
           <ul className="space-y-2 mb-6">
-            {["GST Registration", "Company / LLP / Pvt Ltd Registration", "Accounting & CA Support"].map((t) => (
+            {["GST Registration Assistance", "Company / LLP / Pvt Ltd Registration Assistance", "Accounting & CA Support"].map((t) => (
               <li key={t} className="flex items-center gap-2 text-sm md:text-base">
                 <CheckCircle2 className="h-5 w-5 text-accent shrink-0" /> <span>{t}</span>
               </li>
