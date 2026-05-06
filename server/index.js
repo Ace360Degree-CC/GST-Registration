@@ -24,7 +24,23 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.all("/api/leads", async (req, res) => {
-  await leadsHandler(req, res);
+  try {
+    await leadsHandler(req, res);
+  } catch (error) {
+    console.error("[api] uncaught /api/leads error:", error);
+    const message = error instanceof Error ? error.message : "Internal server error";
+    if (!res.headersSent) {
+      res.status(500).json({ ok: false, error: `Internal error: ${message}` });
+    }
+  }
+});
+
+app.use((error, _req, res, _next) => {
+  console.error("[api] uncaught middleware error:", error);
+  const message = error instanceof Error ? error.message : "Internal server error";
+  if (!res.headersSent) {
+    res.status(500).json({ ok: false, error: `Server error: ${message}` });
+  }
 });
 
 app.listen(port, () => {

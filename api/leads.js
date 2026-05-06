@@ -94,7 +94,12 @@ Team
     return res.status(200).json({ ok: true });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ ok: false, error: "Mail failed" });
+    const errorCode = error?.code ? String(error.code) : "UNKNOWN";
+    const errorMessage = error?.message ? String(error.message) : "Mail failed";
+    console.error("[leads] mail send failed:", error);
+    return res.status(500).json({
+      ok: false,
+      error: `Mail failed (${errorCode}): ${errorMessage}`,
+    });
   }
 }

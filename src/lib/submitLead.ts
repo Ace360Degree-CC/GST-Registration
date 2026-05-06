@@ -20,12 +20,32 @@ const submitOnce = async (endpoint: string, payload: LeadPayload) => {
   });
 
   if (!response.ok) {
-    let errorMessage = "Failed to submit lead form.";
-    try {
-      const body = await response.json();
-      if (body?.error) errorMessage = body.error;
-    } catch {
-      // Ignore JSON parse failures and use fallback message.
+    let errorMessage = "";
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+    if (contentType.includes("application/json")) {
+      try {
+        const body = await response.json();
+        if (body?.error) errorMessage = body.error;
+      } catch {
+        // Ignore JSON parse failures and fall through.
+      }
+    } else {
+      try {
+        const bodyText = (await response.text()).trim();
+        const isHtml = /^<!doctype html>|^<html[\s>]/i.test(bodyText);
+        if (isHtml && endpoint.startsWith("/api/")) {
+          errorMessage = "Lead API route not found. Start `npm run dev:server` or set `VITE_LEAD_API_URL`.";
+        } else if (bodyText) {
+          errorMessage = bodyText.slice(0, 180);
+        }
+      } catch {
+        // Ignore text parse failures and use fallback below.
+      }
+    }
+
+    if (!errorMessage) {
+      errorMessage = `Failed to submit lead form (HTTP ${response.status}).`;
     }
     throw new Error(errorMessage);
   }
