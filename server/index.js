@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import leadsHandler from "../api/leads.js";
+import leadStatusHandler from "../api/lead-status.js";
+import { checkDbConnection } from "../api/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,11 +25,34 @@ app.get("/api/health", (_req, res) => {
   res.status(200).json({ ok: true });
 });
 
+app.get("/api/health/db", async (_req, res) => {
+  try {
+    await checkDbConnection();
+    res.status(200).json({ ok: true, db: "connected" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown DB error";
+    console.error("[api] db health check failed:", error);
+    res.status(500).json({ ok: false, db: "disconnected", error: message });
+  }
+});
+
 app.all("/api/leads", async (req, res) => {
   try {
     await leadsHandler(req, res);
   } catch (error) {
     console.error("[api] uncaught /api/leads error:", error);
+    const message = error instanceof Error ? error.message : "Internal server error";
+    if (!res.headersSent) {
+      res.status(500).json({ ok: false, error: `Internal error: ${message}` });
+    }
+  }
+});
+
+app.patch("/api/leads/:id/status", async (req, res) => {
+  try {
+    await leadStatusHandler(req, res);
+  } catch (error) {
+    console.error("[api] uncaught /api/leads/:id/status error:", error);
     const message = error instanceof Error ? error.message : "Internal server error";
     if (!res.headersSent) {
       res.status(500).json({ ok: false, error: `Internal error: ${message}` });
