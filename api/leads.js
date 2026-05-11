@@ -1,79 +1,68 @@
 import nodemailer from "nodemailer";
-import { getLeadTableColumns, getLeadsTableName, query } from "./db.js";
 
-const MAIL_ENV_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_TO", "MAIL_FROM"];
-const ALLOWED_LIST_FILTERS = new Set(["status", "service", "source", "form_used", "page_id", "project_id"]);
-const FORM_SOURCE_MAP = {
-  footer: "footer_form",
-  popup: "popup_form",
-  header: "hero_form",
-  hero: "hero_form",
-};
-const normalizeFormBucket = (value) => {
-  const source = String(value || "").trim().toLowerCase();
-  if (source === "footer") return "footer";
-  if (source === "popup") return "popup";
-  return "header";
-};
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ ok: false, error: "Method not allowed" });
+  }
 
-const parsePositiveInt = (value, fallback, max = null) => {
-  const num = Number.parseInt(String(value ?? ""), 10);
-  if (!Number.isFinite(num) || num < 1) return fallback;
-  if (max && num > max) return max;
-  return num;
-};
+  const {
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_SECURE,
+    SMTP_USER,
+    SMTP_PASS,
+    MAIL_TO,
+    MAIL_FROM,
+  } = process.env;
 
-const resolveTableColumns = (columnsInDb) => {
-  const idColumn = columnsInDb.has("lead_id") ? "lead_id" : "id";
-  const nameColumn = columnsInDb.has("user_full_name") ? "user_full_name" : "name";
-  const phoneColumn = columnsInDb.has("user_phone") ? "user_phone" : "phone";
-  const emailColumn = columnsInDb.has("user_email") ? "user_email" : "email";
-  const serviceColumn = columnsInDb.has("selected_service")
-    ? "selected_service"
-    : columnsInDb.has("service")
-      ? "service"
-      : null;
-  const stageColumn = columnsInDb.has("selected_option")
-    ? "selected_option"
-    : columnsInDb.has("business_stage")
-      ? "business_stage"
-      : null;
-  const formColumn = columnsInDb.has("lead_form_name")
-    ? "lead_form_name"
-    : columnsInDb.has("form_used")
-      ? "form_used"
-      : null;
-  const createdAtColumn = columnsInDb.has("lead_submission_time")
-    ? "lead_submission_time"
-    : columnsInDb.has("created_at")
-      ? "created_at"
-      : null;
-  const statusColumn = columnsInDb.has("lead_status")
-    ? "lead_status"
-    : columnsInDb.has("status")
-      ? "status"
-      : null;
+  const requiredEnv = [
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASS",
+    "MAIL_TO",
+    "MAIL_FROM",
+  ];
 
-  return {
-    idColumn,
-    nameColumn,
-    phoneColumn,
-    emailColumn,
-    serviceColumn,
-    stageColumn,
-    formColumn,
-    createdAtColumn,
-    statusColumn,
+  const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+
+  if (missingEnv.length > 0) {
+    return res.status(500).json({
+      ok: false,
+      error: `Missing env vars: ${missingEnv.join(", ")}`,
+    });
+  }
+
+  const { name, mobile, email, service, stage, formSource } = req.body || {};
+
+  if (
+    !name?.trim() ||
+    !/^\d{10}$/.test(mobile || "") ||
+    !/^\S+@\S+\.\S+$/.test(email || "")
+  ) {
+    return res.status(400).json({
+      ok: false,
+      error: "Invalid form data.",
+    });
+  }
+
+  const safeName = name.trim();
+  const safeEmail = email.trim();
+  const safeService = service || "GST Registration";
+  const safeStage = stage || "Idea";
+
+  const sourceMap = {
+    footer: "Footer Form",
+    popup: "Popup Form",
+    header: "Header Form",
   };
-};
 
-const hasMailConfig = () => MAIL_ENV_KEYS.every((key) => Boolean(process.env[key]));
+  const safeFormSource = sourceMap[formSource] || "Header Form";
 
-const createTransporter = () =>
-  nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: SMTP_SECURE === "true",
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -209,19 +198,20 @@ Regards,
 Team
 `;
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to: process.env.MAIL_TO,
-    subject: `GST New Lead (${formUsed})`,
-    text: adminText,
-  });
+  try {
+    await transporter.sendMail({
+      from: MAIL_FROM,
+      to: MAIL_TO,
+      subject: `GST New Lead (${safeFormSource})`,
+      text: adminText,
+    });
 
-  await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to: email,
-    subject: "Thank You for Contacting Us",
-    text: userText,
-  });
+    await transporter.sendMail({
+      from: MAIL_FROM,
+      to: safeEmail,
+      subject: "Thank You for Contacting Us",
+      text: userText,
+    });
 
   return { skipped: false };
 };
@@ -310,22 +300,16 @@ const createLead = async (req, res) => {
   try {
     emailStatus = await sendLeadEmails(normalized.leadMeta);
   } catch (error) {
-    const code = error?.code ? String(error.code) : "UNKNOWN";
-    const message = error?.message ? String(error.message) : "Mail failed";
+    const errorCode = error?.code ? String(error.code) : "UNKNOWN";
+    const errorMessage = error?.message
+      ? String(error.message)
+      : "Mail failed";
+
     console.error("[leads] mail send failed:", error);
-    emailStatus = { skipped: false, failed: true, code, message };
+
+    return res.status(500).json({
+      ok: false,
+      error: `Mail failed (${errorCode}): ${errorMessage}`,
+    });
   }
-
-  return res.status(201).json({
-    ok: true,
-    id: leadId,
-    email: emailStatus,
-  });
-};
-
-export default async function handler(req, res) {
-  if (req.method === "POST") return createLead(req, res);
-  if (req.method === "GET") return listLeads(req, res);
-
-  return res.status(405).json({ ok: false, error: "Method not allowed" });
 }
